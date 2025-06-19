@@ -1,77 +1,39 @@
-const dotenv = require('dotenv')
-const express = require('express')
-const multer = require('multer') // input data
-const fs = require('fs') // input data
-const path = require('path') // input data
-const port = 3000 // setting utk express
-const { GoogleGenerativeAI } = require('@google/generative-ai')
+// ----- Import Required Modules & Libraries -----
+const { GoogleGenerativeAI } = require('@google/generative-ai') // Import the main class from the Google AI library to interact with the Gemini API
 
-dotenv.config()
-const app = express() // prepare for app routes
-app.use(express.json()) // utk baca json di express
+const dotenv = require('dotenv') // Import a library to read .env configuration files
+const express = require('express') // Import the Express.js web framework to create the server and API
+const fs = require('fs') // Import Node.js' built-in 'fs' (File System) module to interact with files on the server
+const multer = require('multer') // Import 'multer' middleware to handle file uploads (multipart/form-data)
+const path = require('path') // Import Node.js' built-in 'path' module to work with file and directory paths.
+const port = 3000 // Specifies the port on which the server will run.
 
-const genAI = new GoogleGenerativeAI(process.env.api_key)
-const model = genAI.getGenerativeModel({ model: 'models/gemini-1.5-flash' })
 
-// setting multer
-const upload = multer({ dest: 'uploads/' })
+// ----- Configuration & Initialization -----
+dotenv.config() // Runs the dotenv configuration so that all variables in the .env file can be accessed via process.env
+const app = express() // Create an Express application instance. 'app' is our web server
+app.use(express.json()) // Use middleware to parse the incoming request body in JSON format to allows you read data from req.body.
 
-// console.log(process.env.api_key)
-// // run()
 
-//endpoint for file upload
-// app.post("/generative-text", async (req, res) => {
-//     const { prompt } = req.body
-//     try {
-//         let result = await model.generateContent(prompt)
-//         let response = await result.response
+// ----- Google Generative AI (Gemini) Configuration -----
+const genAI = new GoogleGenerativeAI(process.env.api_key) // Initialize the GoogleGenerativeAI class with the API key from the environment variables
+const model = genAI.getGenerativeModel({ model: "models/gemini-1.5-flash" }) // Select the specific model we will use from Gemini
 
-//         res.status(200).json({
-//             text: response.candidates[0].content,
-//             usage: response.usage
-//         })
-//     } catch (error) {
-//         console.error('Error generating text:', error)
-//         res.status(500).json({ error: 'Failed to generate text' })
-//     }
-// })
+// ----- Setting multer -----
+const upload = multer({ dest: 'uploads/' }) // Configure multer to store uploaded files in the 'uploads' directory
 
-//endpoint for generate text
+// Endpoint for generate text with Gemini AI
 app.post("/generate-text", async (req, res) => {
-    const { prompt } = req.body
+    const { prompt } = req.body // Extract the 'prompt' from the request body
     try {
-        let result = await model.generateContent(prompt)
-        let response = await result.response
-
-        res.status(200).json({ output: response.text})
+        let result = await model.generateContent(prompt) // Process the prompt and waiting for Gemini to process it
+        let response = result.response // Get the response from the model
+        res.status(200).json({ output: response.text() }) // Send the generated text back to the client as a JSON response
     } catch (error) {
-        res.status(500).json({ error: 'Failed to generate text' })
+        res.status(500).json({ error: error.message }) // Send an error response if something goes wrong
     }
 })
 
-//endpoint for read image to text with gemini
-const imageGeneratePart = (filePath) => ({
-    inlineData: {
-        data: fs.readFileSync(filePath).toString('base64'),
-        mimeType: 'image/jpg'
-    }
-})
-
-app.post('/generate-from-image', upload.single('image'), async (req, res) => {
-    const prompt = req.body.prompt || 'describe the picture'
-    const image = imageGeneratePart(req.file.path)
-  
-    try {
-      let result = await model.generateContent([prompt, image])
-      let response = result.response
-      // console.log(response.text())
-      res.status(200).json({ output: response.text() })
-    } catch (error) {
-      // console.log(error)
-      res.status(500).json({ error: error.message })
-    }
-  })
-
-app.listen(port, () => {
-  console.log(`this gemini api running on localhost ${port}`)
-})
+app.listen(port, () => {    
+  console.log(`Server is running on http://localhost:${port}`) // Log a message to the console when the server starts
+}) // Start the server and listen on the specified port
