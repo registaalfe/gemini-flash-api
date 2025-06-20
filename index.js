@@ -80,9 +80,29 @@ app.post("/generate-from-document", upload.single('document'), async (req, res) 
     } finally {
         fs.unlinkSync(req.file.path) // delete the uploaded file
     }
-
 })
 
+// endpoint for generate audio with Gemini AI
+app.post("/generate-from-audio", upload.single('audio'), async (req, res) => {    
+    const audioBuffer = fs.readFileSync(req.file.path) // read the audio file content into a buffer
+    const audioBase64 = audioBuffer.toString('base64') // convert the buffer to a base64 string
+    const audioPart = {
+        inlineData: {
+            data: audioBase64, // the base64 encoded audio data
+            mimeType: req.file.mimetype // the MIME type of the audio file
+        }
+    }
+
+    try {
+        const result = await model.generateContent([`transcribe this audio`, audioPart]) // process the audio and waiting for Gemini to process it
+        const response = await result.response // get the response from the model
+        res.json({ output: response.text() }) // send the generated text back to the client as a JSON response
+    } catch (err) {
+        res.status(500).json({ error: err.message }) // send an error response if something goes wrong
+    } finally {
+        fs.unlinkSync(req.file.path)
+    }
+})
 
 app.listen(port, () => {    
   console.log(`Server is running on http://localhost:${port}`) // log a message to the console when the server starts
