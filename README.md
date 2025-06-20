@@ -2,6 +2,8 @@
 
 ## ✨ Features
 
+![hola](https://drive.google.com/file/d/1dcCCZh0daej4Ia6kI8M4oIcDZUYW-mP-/view?usp=sharing)
+
 - 💬 **Text Generation**: A dedicated endpoint for conversational AI and text-based prompts.
 - 🖼️ **Image Analysis**: Upload images and ask questions about them or request detailed descriptions.
 - 🎧 **Audio Processing**: Transcribe, summarize, or analyze audio files.
@@ -19,7 +21,7 @@ git clone https://github.com/registaalfe/gemini-flash-api.git
 
 ### 2. Navigate into the Project
 ```bash
-cd your-repo-name
+cd gemini-flash-api
 
 ```
 
