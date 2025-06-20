@@ -34,7 +34,7 @@ app.post("/generate-text", async (req, res) => {
     }
 })
 
-// endpoint for generate image with Gemini AI
+// converts an image file into the specific object format
 const imageGeneratePart = (filePath) => ({
     inlineData: {
         mimeType: 'image/png', // specify the MIME type of the image
@@ -42,6 +42,7 @@ const imageGeneratePart = (filePath) => ({
     }
 })
 
+// endpoint for generate image with Gemini AI
 app.post("/generate-from-image", upload.single('image'), async (req, res) => {
     const prompt = req.body.prompt || 'Describe the picture' // extract the 'prompt' from the request body    
     const image = imageGeneratePart(req.file.path) // prepare the image part for the request using the uploaded file path
@@ -56,6 +57,32 @@ app.post("/generate-from-image", upload.single('image'), async (req, res) => {
         fs.unlinkSync(req.file.path) // delete the uploaded file
     }
 })
+
+// endpoint for read document to text with Gemini AI
+app.post("/generate-from-document", upload.single('document'), async (req, res) => {
+    const prompt = req.body.prompt || 'Analyze this document' // extract the 'prompt' from the request body    
+    const filePath = req.file.path // get the path of the uploaded file
+    const buffer = fs.readFileSync(filePath) // read the file content into a buffer
+    const base64 = buffer.toString('base64') // convert the buffer to a base64 string
+    const mimeType = req.file.mimetype // get the MIME type of the uploaded file
+
+    try {
+        const documentPart = {
+            inlineData: {
+                data: base64, mimeType // convert the buffer to a base64 string
+            }
+        }
+        let result = await model.generateContent([`analyze this document`, documentPart]) // process the prompt and waiting for Gemini to process it
+        let response = result.response // get the response from the model
+        res.status(200).json({ output: response.text() }) // send the generated text back to the client as a JSON response
+    } catch (error) {
+        res.status(500).json({ error: error.message }) // send an error response if something goes wrong
+    } finally {
+        fs.unlinkSync(req.file.path) // delete the uploaded file
+    }
+
+})
+
 
 app.listen(port, () => {    
   console.log(`Server is running on http://localhost:${port}`) // log a message to the console when the server starts
