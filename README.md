@@ -1,5 +1,11 @@
 # Backend - Gemini Flash API
 
+## 🖼️ Preview
+
+![App Screenshot](https://github.com/registaalfe/gemini-flash-api/blob/main/screenshot.jpg?raw=true)
+
+---
+
 ## ✨ Features
 
 - 💬 **Text Generation**: A dedicated endpoint for conversational AI and text-based prompts.
